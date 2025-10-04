@@ -3,18 +3,11 @@ import random
 import asyncio
 from telethon import TelegramClient
 
-# Load credentials from Render/Railway environment variables
-api_id_A = int(os.getenv("API_ID_A"))
-api_hash_A = os.getenv("API_HASH_A")
+# Use session files for login (no API_ID/API_HASH needed)
+client_A = TelegramClient("accountA", 0, "")
+client_B = TelegramClient("accountB", 0, "")
 
-api_id_B = int(os.getenv("API_ID_B"))
-api_hash_B = os.getenv("API_HASH_B")
-
-group = os.getenv("GROUP")  # Group username or ID
-
-# Create sessions for both accounts
-client_A = TelegramClient("accountA", api_id_A, api_hash_A)
-client_B = TelegramClient("accountB", api_id_B, api_hash_B)
+group = os.getenv("GROUP")  # Group username or numeric ID
 
 # Load messages from file
 def load_messages():
@@ -27,27 +20,20 @@ def load_messages():
 messages = load_messages()
 
 async def chat_loop():
-    await client_A.start()
-    await client_B.start()
-
     print("✅ Both accounts started. Chatting in group:", group)
-
     turn = 0  # 0 = A, 1 = B
 
     while True:
         sender = client_A if turn == 0 else client_B
         name = "A" if turn == 0 else "B"
 
-        # pick random message
+        # Pick random message
         msg = random.choice(messages)
 
-        # format style
-        if name == "A":
-            msg = msg.capitalize()   # A starts with capital
-        else:
-            msg = msg.lower()        # B all lowercase
+        # Capitalization rules
+        msg = msg.capitalize() if name == "A" else msg.lower()
 
-        # 70% chance to reply (use reply feature)
+        # 70% chance to reply
         use_reply = random.random() < 0.7
 
         try:
@@ -64,14 +50,16 @@ async def chat_loop():
         except Exception as e:
             print(f"Error sending message: {e}")
 
-        # switch turn
+        # Switch turn
         turn = 1 - turn
 
-        # wait 20–30 sec before next
+        # Wait 20–30 seconds
         await asyncio.sleep(random.randint(20, 30))
 
 async def main():
-    await asyncio.gather(chat_loop())
+    await client_A.start()
+    await client_B.start()
+    await chat_loop()
 
-with client_A, client_B:
-    client_A.loop.run_until_complete(main())
+# Run the bot
+asyncio.run(main())
