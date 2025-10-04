@@ -3,11 +3,18 @@ import random
 import asyncio
 from telethon import TelegramClient
 
-# Use session files for login (no API_ID/API_HASH needed)
-client_A = TelegramClient("accountA", 0, "")
-client_B = TelegramClient("accountB", 0, "")
+# Read API_ID / API_HASH from environment
+api_id_A = int(os.getenv("API_ID_A"))
+api_hash_A = os.getenv("API_HASH_A")
 
-group = os.getenv("GROUP")  # Group username or numeric ID
+api_id_B = int(os.getenv("API_ID_B"))
+api_hash_B = os.getenv("API_HASH_B")
+
+client_A = TelegramClient("accountA.session", api_id_A, api_hash_A)
+client_B = TelegramClient("accountB.session", api_id_B, api_hash_B)
+
+group = os.getenv("GROUP")
+
 
 # Load messages from file
 def load_messages():
@@ -63,3 +70,4 @@ async def main():
 
 # Run the bot
 asyncio.run(main())
+
